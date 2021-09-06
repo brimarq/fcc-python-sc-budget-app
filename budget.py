@@ -5,7 +5,7 @@ class Category:
 
     def deposit(self, amount, description = ''):
         # should append an object to the ledger list in the form of {"amount": amount, "description": description}.
-        return
+        self.ledger.append({"amount": amount, "description": description})
 
     def withdraw(self, amount, description = ''):
         # amount passed in should be stored in the ledger as a negative number.
