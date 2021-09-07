@@ -2,7 +2,7 @@ class Category:
 
     def __init__(self, category):
         self.category = category
-        self.ledger = list()
+        self.ledger = []
 
     def deposit(self, amount, description = ''):
         self.ledger.append({"amount": amount, "description": description})
@@ -45,39 +45,67 @@ class Category:
         return print_str
 
 def create_spend_chart(categories):
-    return  # should return a string that is a bar chart.
-    # The chart should show the percentage spent in each category passed in to the function.
-    # The percentage spent should be calculated only with withdrawals and not with deposits.
-    # Down the left side of the chart should be labels 0 - 100. 
-    # The "bars" in the bar chart should be made out of the "o" character. 
-    # The height of each bar should be rounded down to the nearest 10. 
-    # The horizontal line below the bars should go two spaces past the final bar. 
-    # Each category name should be written vertically below the bar. 
-    # There should be a title at the top that says "Percentage spent by category".
-    # This function will be tested with up to four categories.
+    
+    category_names = []
+    withdrawals = []
 
-# Testing
-food = Category("Food")
-food.deposit(1000, "initial deposit")
-food.withdraw(10.15, "groceries")
-food.withdraw(15.89, "restaurant and more food for dessert")
-# print(food.get_balance()) # 973.96
-# print(food.ledger)
-clothing = Category("Clothing")
-food.transfer(50, clothing)
-# print(food.get_balance()) # 923.96
-# print(clothing.get_balance()) # 50
-# print(food.ledger)
-# print(clothing.ledger)
-clothing.withdraw(25.55) 
-# print(clothing.get_balance()) # 24.45
-clothing.withdraw(100)
-# print(clothing.get_balance()) # 24.45
-auto = Category("Auto")
-auto.deposit(1000, "initial deposit")
-auto.withdraw(15)
-# print(auto.get_balance()) # 985
-print(food)
-print(clothing)
+    for category in categories:
+        category_names.append(category.category)
+        debits = [
+            abs(line['amount']) 
+            for line in category.ledger 
+            if line['amount'] < 0
+        ]
+        withdrawals.append(sum(debits))
 
-# print(create_spend_chart([food, clothing, auto]))
+    percent_spending = [
+        (int(amt / sum(withdrawals) * 100 * (10**-1)) * 10) 
+        for amt in withdrawals
+    ]
+
+    # Construct chart
+    chart_lines = 12
+    max_cat_name_length = max([len(name) for name in category_names])
+    chart = 'Percentage spent by category\n'
+
+    for i in range(chart_lines + max_cat_name_length):
+        percent = (10 - i) * 10
+
+        # Construct chart body
+        if percent >= 0:
+            # Set vertical percent label
+            chart += f'{percent:>3}|'
+
+            # Set data mark on chart or empty space
+            for i in range(len(percent_spending)):
+                mark = ' o ' if percent_spending[i] >= percent else '   '
+                chart += mark
+            chart += ' \n'
+
+        # Set bottom line of chart
+        elif percent == -10:
+            chart += '    '
+            for i in range(len(percent_spending)):
+                if i < len(percent_spending) - 1:
+                    mark = '---'
+                else: 
+                    mark = '----'
+                chart += mark
+            chart += '\n'
+
+        # Construct bottom labels
+        else:
+            chart += '    '
+            index = i - chart_lines
+            for name in category_names:
+                if index < len(name):
+                    chart += f' {name[index]} '
+                else: 
+                    chart += '   '
+
+            if index < max_cat_name_length - 1:
+                chart += ' \n'
+            else: 
+                chart += ' '
+
+    return chart
